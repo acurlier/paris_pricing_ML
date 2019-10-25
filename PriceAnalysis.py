@@ -75,6 +75,7 @@ class PriceAnalysis():
 
     
     def generate_adresses(self):
+        self.depth = 10 #len(self.df_price_paris)
         #create an adress list dataSeries by combining several columns of the original dataframe
         self.df_price_paris = self.df_price_paris.reset_index().drop('index',axis=1)
         self.address = self.df_price_paris['No voie'] + ' ' \
@@ -82,10 +83,9 @@ class PriceAnalysis():
             + self.df_price_paris['Voie'] + ' ' \
             + self.df_price_paris['Code postal'] + ' ' \
             + self.df_price_paris['Commune']
-        
+        self.address = self.address[0:self.depth]
     
     def find_coordinates(self):
-        depth = len(self.df_price_paris)
         #lookup adresses for lattitude and longitude
         longi = []
         lat = []
@@ -93,9 +93,10 @@ class PriceAnalysis():
         failure_connect = 0
         failure_process = 0
         print('Running ...')
-        for i,place in enumerate(address):
+        for i,place in enumerate(self.address):
             time.sleep(0.7) # mandatory break between each nominatim request
             geolocator = Nominatim(user_agent="foursquare_agent")
+            print(str(i) + ' / ' + str(self.depth))
             try:
                 #get the location
                 location = geolocator.geocode(place)
@@ -140,9 +141,9 @@ class PriceAnalysis():
 
         # display a report
         print("Nominatim location import completed:")
-        print("Import successful : " + success)
-        print("Adress not found : " + failure_process)
-        print("Service not responding : " + failure_connect)
+        print("Import successful : " + str(success))
+        print("Adress not found : " + str(failure_process))
+        print("Service not responding : " + str(failure_connect))
 
         #generating the dataframe
         #we don't need these columns any longer
@@ -150,7 +151,7 @@ class PriceAnalysis():
         self.df_price_clean = self.df_price_paris.drop(columns = list_todrop2)
 
         #define the number of rows to process (ultimately the whole adress dataseries)
-        self.df_price_clean = self.df_price_clean.iloc[0:depth]
+        self.df_price_clean = self.df_price_clean.iloc[0:self.depth]
 
         #The cash value of the goods in the dataset is considered as a string, since it uses the french separator for decimals (, instead of .)
         #lets solve this issue
@@ -195,8 +196,8 @@ class PriceAnalysis():
                 print(str(j) + '--' + '[error]'+ str(self.df_price_clean['longitude'].iloc[j]) + ' , ' + self.df_price_clean['lattitude'].iloc[j])
                 to_remove.append(j)
         
-        df_price_clean=df_price_clean.drop(to_remove)
-        df_price_clean['Quartier'] = quartier
+        self.df_price_clean = self.df_price_clean.drop(to_remove)
+        self.df_price_clean['Quartier'] = quartier
 
 
     def save_data(self,df,name):
