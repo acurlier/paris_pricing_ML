@@ -75,7 +75,7 @@ class PriceAnalysis():
 
     
     def generate_adresses(self):
-        self.depth = 10 #len(self.df_price_paris)
+        self.depth = len(self.df_price_paris)
         #create an adress list dataSeries by combining several columns of the original dataframe
         self.df_price_paris = self.df_price_paris.reset_index().drop('index',axis=1)
         self.address = self.df_price_paris['No voie'] + ' ' \
@@ -94,9 +94,9 @@ class PriceAnalysis():
         failure_process = 0
         print('Running ...')
         for i,place in enumerate(self.address):
-            time.sleep(0.7) # mandatory break between each nominatim request
+            time.sleep(1.5) # mandatory break between each nominatim request
             geolocator = Nominatim(user_agent="foursquare_agent")
-            print(str(i) + ' / ' + str(self.depth))
+            print(str(i) + ' / ' + str(self.depth)+ ' ...')
             try:
                 #get the location
                 location = geolocator.geocode(place)
@@ -104,7 +104,7 @@ class PriceAnalysis():
                     latitude = location.latitude
                     longitude = location.longitude
                     success+=1
-                    #print(place + ' lat = '+ str(latitude) + ' lon = ' + str(longitude))
+                    print('... '+ place + ' lat = '+ str(latitude) + ' lon = ' + str(longitude))
                     lat.append(latitude)
                     longi.append(longitude)
                 except:
@@ -122,20 +122,20 @@ class PriceAnalysis():
                         latitude = location.latitude
                         longitude = location.longitude
                         success+=1
-                        #print('[Recovered] : ' + adresse_reform + ' lat = '+ str(latitude) + ' lon = ' + str(longitude))
+                        print('... [Recovered] : ' + adresse_reform + ' lat = '+ str(latitude) + ' lon = ' + str(longitude))
                         lat.append(latitude)
                         longi.append(longitude)
 
                     except:
                         #if the recovery fails
                         failure_process+=1
-                        #print('[Failed] Error at : ' + adresse_reform)
+                        print('... [Failed] Error at : ' + adresse_reform)
                         lat.append(np.nan)
                         longi.append(np.nan)
             except:
                 #sometimes it is not possible to access the service, eventhough the deadtime criteria is met, we give up on these adresses
                 failure_connect +=1
-                #print('[Failed] Connection error at : ' + place)
+                print('... [Failed] Connection error at : ' + place)
                 lat.append(np.nan)
                 longi.append(np.nan)       
 
